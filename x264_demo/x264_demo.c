@@ -109,17 +109,17 @@ int main(int argc, char **argv)
     // “flush_encoder”模块，该模块使用的函数和编码模块是一样的。
     // 唯一的不同在于不再输入视频像素数据。
     // 它的作用在于输出编码器中剩余的码流数据。
-    while (1) {
+    while (x264_encoder_delayed_frames(x264)) {
         int ret = x264_encoder_encode(x264, &pnals, &inal, NULL, pic_out);
-        if (ret == 0) {
+        if (ret < 0) {
             break;
-        }
+        } else if (ret) {
+            fflush_frames++;
 
-        fflush_frames++;
-
-        printf("fflush one frame\n");
-        for (int j = 0; j < inal; j++) {
-            fwrite(pnals[j].p_payload, 1, pnals[j].i_payload, dst);
+            printf("fflush one frame\n");
+            for (int j = 0; j < inal; j++) {
+                fwrite(pnals[j].p_payload, 1, pnals[j].i_payload, dst);
+            }
         }
     }
 
